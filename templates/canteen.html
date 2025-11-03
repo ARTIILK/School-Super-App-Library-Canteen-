@@ -1,0 +1,54 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<h1 class="text-3xl font-bold mb-6">Canteen Management</h1>
+
+<!-- Add Menu Item Form -->
+<div class="bg-gray-800 p-6 rounded-lg shadow-lg mb-8">
+    <h2 class="text-2xl font-semibold mb-4">Add New Menu Item</h2>
+    <form action="{{ url_for('canteen') }}" method="POST" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div>
+            <label for="name" class="block mb-2 text-sm font-medium">Item Name</label>
+            <input type="text" name="name" id="name" class="bg-gray-700 border border-gray-600 text-white rounded-lg w-full p-2.5" required>
+        </div>
+        <div>
+            <label for="price" class="block mb-2 text-sm font-medium">Price (₹)</label>
+            <input type="text" name="price" id="price" class="bg-gray-700 border border-gray-600 text-white rounded-lg w-full p-2.5" required>
+        </div>
+        <div class="self-end">
+            <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 px-5 rounded-lg w-full">
+                Add Item
+            </button>
+        </div>
+    </form>
+</div>
+
+<!-- Menu List -->
+<div class="bg-gray-800 p-6 rounded-lg shadow-lg">
+    <h2 class="text-2xl font-semibold mb-4">Current Canteen Menu</h2>
+    <div class="overflow-x-auto">
+        <table>
+            <thead>
+                <tr>
+                    <th>Item ID</th>
+                    <th>Name</th>
+                    <th>Price</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in menu_items %}
+                <tr>
+                    <td>{{ item.item_id }}</td>
+                    <td>{{ item.name }}</td>
+                    <td>₹{{ "%.2f"|format(item.price) }}</td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="3" class="text-center py-4">No items in menu. Add one above!</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

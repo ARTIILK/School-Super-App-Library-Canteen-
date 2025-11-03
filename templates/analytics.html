@@ -1,0 +1,29 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<h1 class="text-3xl font-bold mb-6">Analytics Dashboard</h1>
+
+<div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+    
+    <!-- Canteen Analytics Card -->
+    <div class="bg-gray-800 p-6 rounded-lg shadow-lg">
+        <h2 class="text-2xl font-semibold mb-4 text-center">Canteen Sales</h2>
+        {% if graph_canteen %}
+            <img src="{{ graph_canteen }}" alt="Canteen Sales Graph" class="w-full h-auto">
+        {% else %}
+            <p class="text-center text-gray-400 py-20">No canteen sales data available to plot.</p>
+        {% endif %}
+    </div>
+    
+    <!-- Library Analytics Card -->
+    <div class="bg-gray-800 p-6 rounded-lg shadow-lg">
+        <h2 class="text-2xl font-semibold mb-4 text-center">Library Issues</h2>
+        {% if graph_library %}
+            <img src="{{ graph_library }}" alt="Library Issues Graph" class="w-full h-auto">
+        {% else %}
+            <p class="text-center text-gray-400 py-20">No book issue data available to plot.</p>
+        {% endif %}
+    </div>
+
+</div>
+{% endblock %}

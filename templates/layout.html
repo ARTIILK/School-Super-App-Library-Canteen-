@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-M">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>School Super App</title>
+    <!-- This loads Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        // Set up dark mode for Tailwind
+        tailwind.config = {
+            darkMode: 'class'
+        }
+    </script>
+    <style>
+        /* Simple style for table */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 1px solid #4b5563; /* gray-600 */
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #374151; /* gray-700 */
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-white font-sans">
+
+    <div class="flex h-screen">
+        <!-- Sidebar -->
+        <nav class="w-64 bg-gray-800 p-5">
+            <h1 class="text-2xl font-bold mb-10 text-center">Super App</h1>
+            <ul>
+                <!-- Navigation Links -->
+                <li>
+                    <a href="{{ url_for('analytics') }}" 
+                       class="flex items-center p-3 rounded-lg hover:bg-blue-600
+                       {% if active_page == 'analytics' %} bg-blue-700 {% endif %}">
+                        <!-- SVG icon for Analytics -->
+                        <svg class="w-6 h-6 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.488 9A9.004 9.004 0 0113 3.055v9.945l7.488-3.999z"></path></svg>
+                        Analytics
+                    </a>
+                </li>
+                <li class="mt-4">
+                    <a href="{{ url_for('library') }}" 
+                       class="flex items-center p-3 rounded-lg hover:bg-blue-600
+                       {% if active_page == 'library' %} bg-blue-700 {% endif %}">
+                        <!-- SVG icon for Library -->
+                        <svg class="w-6 h-6 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 14v3m4-3v3m4-3v3M3 21h18M3 10h18M3 7l9-4 9 4M4 10h16v11H4V10z"></path></svg>
+                        Library
+                    </a>
+                </li>
+                <li class="mt-4">
+                    <a href="{{ url_for('canteen') }}" 
+                       class="flex items-center p-3 rounded-lg hover:bg-blue-600
+                       {% if active_page == 'canteen' %} bg-blue-700 {% endif %}">
+                        <!-- SVG icon for Canteen -->
+                        <svg class="w-6 h-6 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+                        Canteen
+                    </a>
+                </li>
+            </ul>
+        </nav>
+        
+        <!-- Main Content Area -->
+        <main class="flex-1 p-10 overflow-auto">
+            <!-- This is where the content from other pages will be injected -->
+            {% block content %}{% endblock %}
+        </main>
+    </div>
+
+</body>
+</html>

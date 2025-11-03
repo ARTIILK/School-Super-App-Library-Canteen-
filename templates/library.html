@@ -1,0 +1,61 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<h1 class="text-3xl font-bold mb-6">Library Management</h1>
+
+<!-- Add Book Form -->
+<div class="bg-gray-800 p-6 rounded-lg shadow-lg mb-8">
+    <h2 class="text-2xl font-semibold mb-4">Add New Book</h2>
+    <form action="{{ url_for('library') }}" method="POST" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div>
+            <label for="title" class="block mb-2 text-sm font-medium">Book Title</label>
+            <input type="text" name="title" id="title" class="bg-gray-700 border border-gray-600 text-white rounded-lg w-full p-2.5" required>
+        </div>
+        <div>
+            <label for="author" class="block mb-2 text-sm font-medium">Author</label>
+            <input type="text" name="author" id="author" class="bg-gray-700 border border-gray-600 text-white rounded-lg w-full p-2.5" required>
+        </div>
+        <div>
+            <label for="quantity" class="block mb-2 text-sm font-medium">Quantity</label>
+            <input type="number" name="quantity" id="quantity" class="bg-gray-700 border border-gray-600 text-white rounded-lg w-full p-2.5" required>
+        </div>
+        <div class="self-end">
+            <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 px-5 rounded-lg w-full">
+                Add Book
+            </button>
+        </div>
+    </form>
+</div>
+
+<!-- Book List -->
+<div class="bg-gray-800 p-6 rounded-lg shadow-lg">
+    <h2 class="text-2xl font-semibold mb-4">Current Library Stock</h2>
+    <div class="overflow-x-auto">
+        <table>
+            <thead>
+                <tr>
+                    <th>Book ID</th>
+                    <th>Title</th>
+                    <th>Author</th>
+                    <th>Quantity</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for book in books %}
+                <tr>
+                    <td>{{ book.book_id }}</td>
+                    <td>{{ book.title }}</td>
+                    <td>{{ book.author }}</td>
+                    <td class="text-center">{{ book.quantity }}</td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="4" class="text-center py-4">No books in library. Add one above!</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+
