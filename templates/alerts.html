@@ -1,0 +1,190 @@
+{% extends "layout.html" %}
+
+{% block title %}Alert System - Record Book{% endblock %}
+
+{% block content %}
+<div class="mb-8">
+    <h1 class="text-3xl font-bold mb-2">🔔 Alert System</h1>
+    <p class="text-gray-400">Send AI-generated payment reminders to customers</p>
+</div>
+
+<!-- Customer Selection -->
+<div class="bg-gray-800 rounded-xl shadow-lg p-6 mb-6">
+    <h2 class="text-xl font-bold mb-4">Select Customers for Alert</h2>
+    
+    <div class="space-y-3">
+        {% for customer in customers %}
+        {% if customer.outstanding_balance > 0 %}
+        <label class="flex items-center p-4 bg-gray-700 rounded-lg hover:bg-gray-650 cursor-pointer">
+            <input type="checkbox" class="customer-checkbox w-5 h-5 text-blue-600" 
+                   data-customer-id="{{ customer.customer_id }}"
+                   data-customer-name="{{ customer.name }}"
+                   data-customer-email="{{ customer.email }}"
+                   data-outstanding="{{ customer.outstanding_balance }}">
+            <div class="ml-4 flex-1">
+                <p class="font-medium">{{ customer.name }}</p>
+                <p class="text-sm text-gray-400">{{ customer.email }}</p>
+            </div>
+            <div class="text-right">
+                <p class="text-red-400 font-bold">{{ format_currency(customer.outstanding_balance) }}</p>
+                <p class="text-xs text-gray-400">Outstanding</p>
+            </div>
+        </label>
+        {% endif %}
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Generate Alert Button -->
+<div class="flex justify-end">
+    <button onclick="generateAIAlert()" 
+            class="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-semibold py-3 px-8 rounded-lg">
+        Generate AI Alert & Send
+    </button>
+</div>
+
+<!-- AI Alert Modal -->
+<div id="alertModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+    <div class="bg-gray-800 rounded-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
+        <div class="p-6 border-b border-gray-700">
+            <h2 class="text-2xl font-bold">🤖 AI-Generated Alert</h2>
+        </div>
+        
+        <div id="alertContent" class="p-6">
+            <!-- Cooldown Timer -->
+            <div id="alertCooldown" class="hidden bg-yellow-900 p-4 rounded-lg mb-4">
+                <p class="text-yellow-200">⏳ Please wait <span id="alertCountdown">30</span> seconds...</p>
+                <div class="mt-2 bg-yellow-800 rounded-full h-2">
+                    <div id="alertProgressBar" class="bg-yellow-400 h-2 rounded-full transition-all" style="width: 100%"></div>
+                </div>
+            </div>
+            
+            <!-- Loading -->
+            <div id="alertLoading" class="text-center py-8">
+                <div class="animate-spin rounded-full h-12 w-12 border-4 border-purple-500 border-t-transparent mx-auto"></div>
+                <p class="mt-4 text-gray-400">AI is crafting personalized alert...</p>
+            </div>
+            
+            <!-- Generated Email Preview -->
+            <div id="alertPreview" class="hidden">
+                <div class="bg-gray-900 rounded-lg p-6 mb-4">
+                    <h3 class="text-lg font-bold mb-2">Email Preview:</h3>
+                    <div id="emailContent" class="text-gray-300"></div>
+                </div>
+                
+                <!-- 2FA for Sending -->
+                <div class="bg-blue-900 bg-opacity-30 border border-blue-600 rounded-lg p-4 mb-4">
+                    <h3 class="text-lg font-bold mb-2">🔐 Verify to Send</h3>
+                    <p class="text-sm text-blue-200 mb-3">Enter 6-digit code from your authenticator app</p>
+                    <input type="text" id="sendAlertCode" maxlength="6" 
+                           class="bg-gray-700 border border-gray-600 rounded-lg px-4 py-2 text-center text-2xl tracking-widest w-48"
+                           placeholder="000000">
+                </div>
+                
+                <div class="flex justify-end space-x-3">
+                    <button onclick="closeAlertModal()" 
+                            class="px-6 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg">
+                        Cancel
+                    </button>
+                    <button onclick="sendAlertEmails()" 
+                            class="px-6 py-2 bg-green-600 hover:bg-green-700 rounded-lg">
+                        Send Alerts
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let selectedCustomers = [];
+let generatedEmails = {};
+
+function generateAIAlert() {
+    // Get selected customers
+    selectedCustomers = [];
+    document.querySelectorAll('.customer-checkbox:checked').forEach(checkbox => {
+        selectedCustomers.push({
+            id: checkbox.dataset.customerId,
+            name: checkbox.dataset.customerName,
+            email: checkbox.dataset.customerEmail,
+            outstanding: checkbox.dataset.outstanding
+        });
+    });
+    
+    if (selectedCustomers.length === 0) {
+        alert('Please select at least one customer');
+        return;
+    }
+    
+    // Show modal
+    document.getElementById('alertModal').classList.remove('hidden');
+    document.getElementById('alertLoading').classList.remove('hidden');
+    document.getElementById('alertPreview').classList.add('hidden');
+    
+    // Call AI to generate emails
+    fetch('/generate-alert-emails', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({customers: selectedCustomers})
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.cooldown) {
+            showAlertCooldown(data.remaining);
+        } else {
+            document.getElementById('alertLoading').classList.add('hidden');
+            document.getElementById('alertPreview').classList.remove('hidden');
+            document.getElementById('emailContent').innerHTML = data.preview;
+            generatedEmails = data.emails;
+        }
+    });
+}
+
+function sendAlertEmails() {
+    const code = document.getElementById('sendAlertCode').value;
+    
+    fetch('/send-alert-emails', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+            code: code,
+            emails: generatedEmails
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('✅ Alerts sent successfully!');
+            closeAlertModal();
+        } else {
+            alert('❌ ' + data.error);
+        }
+    });
+}
+
+function closeAlertModal() {
+    document.getElementById('alertModal').classList.add('hidden');
+}
+
+function showAlertCooldown(seconds) {
+    document.getElementById('alertCooldown').classList.remove('hidden');
+    document.getElementById('alertLoading').classList.add('hidden');
+    
+    let remaining = seconds;
+    const interval = setInterval(() => {
+        remaining--;
+        document.getElementById('alertCountdown').textContent = remaining;
+        document.getElementById('alertProgressBar').style.width = (remaining / seconds * 100) + '%';
+        
+        if (remaining <= 0) {
+            clearInterval(interval);
+            document.getElementById('alertCooldown').classList.add('hidden');
+            document.getElementById('alertLoading').classList.remove('hidden');
+        }
+    }, 1000);
+}
+</script>
+{% endblock %}

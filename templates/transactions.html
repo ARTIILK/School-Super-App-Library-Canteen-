@@ -1,0 +1,409 @@
+{% extends "layout.html" %}
+
+{% block title %}Transactions - Record Book System{% endblock %}
+
+{% block content %}
+<div class="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <div>
+        <h1 class="text-3xl font-bold mb-2">💳 Transactions</h1>
+        <p class="text-gray-400">Record all business transactions with AI assistance</p>
+    </div>
+    <button onclick="document.getElementById('addTransModal').classList.remove('hidden')" 
+            class="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-semibold py-3 px-6 rounded-lg flex items-center justify-center">
+        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+        </svg>
+        New Transaction
+    </button>
+</div>
+
+<!-- AI Natural Language Search -->
+<div class="bg-gradient-to-r from-purple-900 to-blue-900 rounded-xl shadow-lg p-6 mb-6">
+    <h2 class="text-xl font-bold mb-4 flex items-center">
+        <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+        </svg>
+        🤖 AI Natural Language Search
+    </h2>
+    <div class="flex gap-3">
+        <input type="text" id="nlSearchInput" 
+               class="flex-1 bg-gray-700 border border-gray-600 rounded-lg px-4 py-3"
+               placeholder='Try: "Show unpaid invoices for Ramesh" or "Total sales last month"'>
+        <button onclick="performNLSearch()" 
+                class="bg-purple-600 hover:bg-purple-700 px-8 py-3 rounded-lg font-medium">
+            Search
+        </button>
+    </div>
+    <div id="nlSearchResults" class="hidden mt-4 bg-gray-800 rounded-lg p-4"></div>
+</div>
+
+<!-- Transactions Table -->
+<div class="bg-gray-800 rounded-xl shadow-lg overflow-hidden">
+    <div class="overflow-x-auto">
+        <table class="min-w-full">
+            <thead>
+                <tr>
+                    <th class="px-6 py-3">ID</th>
+                    <th class="px-6 py-3">Date</th>
+                    <th class="px-6 py-3">Customer</th>
+                    <th class="px-6 py-3">Type</th>
+                    <th class="px-6 py-3 text-right">Amount</th>
+                    <th class="px-6 py-3">Description</th>
+                    <th class="px-6 py-3">Due Date</th>
+                    <th class="px-6 py-3">Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for trans in transactions %}
+                <tr class="hover:bg-gray-750 transition-colors border-b border-gray-700">
+                    <td class="px-6 py-4 text-gray-400 text-sm">#{{ trans.transaction_id }}</td>
+                    <td class="px-6 py-4">{{ trans.transaction_date }}</td>
+                    <td class="px-6 py-4 font-medium">{{ trans.customer_name }}</td>
+                    <td class="px-6 py-4">
+                        <span class="badge badge-info">{{ trans.transaction_type }}</span>
+                    </td>
+                    <td class="px-6 py-4 font-semibold text-right {% if trans.transaction_type == 'Payment' %}text-green-400{% else %}text-yellow-400{% endif %}">
+                        {{ format_currency(trans.total_amount) }}
+                    </td>
+                    <td class="px-6 py-4 text-gray-300 text-sm">{{ trans.description or '-' }}</td>
+                    <td class="px-6 py-4">{{ trans.due_date or '-' }}</td>
+                    <td class="px-6 py-4">
+                        <span class="badge {% if trans.status == 'Paid' %}badge-success{% else %}badge-warning{% endif %}">
+                            {{ trans.status }}
+                        </span>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="8" class="px-6 py-12 text-center">
+                        <div class="flex flex-col items-center">
+                            <svg class="w-16 h-16 text-gray-600 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                            </svg>
+                            <p class="text-gray-500 text-lg mb-2">No transactions recorded yet</p>
+                            <p class="text-gray-600 text-sm">Start recording your first transaction!</p>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Add Transaction Modal (CORRECTED with proper wrapper) -->
+<div id="addTransModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+    <div class="bg-gray-800 rounded-xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
+        <div class="px-6 py-4 border-b border-gray-700 flex items-center justify-between sticky top-0 bg-gray-800 z-10">
+            <h2 class="text-2xl font-bold">✨ New Transaction</h2>
+            <button onclick="document.getElementById('addTransModal').classList.add('hidden')" 
+                    class="text-gray-400 hover:text-white transition-colors">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
+        </div>
+        
+        <form action="{{ url_for('transactions') }}" method="POST" class="p-6" onsubmit="return validateTransaction()">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Customer Selection with AI Insights -->
+                <div class="md:col-span-2">
+                    <label class="block text-sm font-medium mb-2">Customer *</label>
+                    <select name="customer_id" id="customerSelect" required 
+                            onchange="loadCustomerInsights(); loadSmartSuggestions()"
+                            class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2.5">
+                        <option value="">Select Customer</option>
+                        {% for customer in customers %}
+                        <option value="{{ customer.customer_id }}" 
+                                data-limit="{{ customer.credit_limit }}"
+                                data-outstanding="{{ customer.outstanding_balance or 0 }}">
+                            {{ customer.name }} - Limit: {{ format_currency(customer.credit_limit) }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                    <div id="customerInsight" class="hidden mt-2 bg-blue-900 bg-opacity-30 border border-blue-600 rounded-lg p-3 text-sm text-blue-200"></div>
+                </div>
+                
+                <!-- Transaction Type -->
+                <div>
+                    <label class="block text-sm font-medium mb-2">Transaction Type *</label>
+                    <select name="transaction_type" id="transType" onchange="updateTransactionForm()" required 
+                            class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2.5">
+                        <option value="Sale">💰 Sale/Credit (Customer Owes Money)</option>
+                        <option value="Payment">✅ Payment Received</option>
+                        <option value="Refund">↩️ Refund to Customer</option>
+                    </select>
+                </div>
+                
+                <!-- Amount with Smart Suggestions -->
+                <div>
+                    <label class="block text-sm font-medium mb-2">Amount (₹) *</label>
+                    <input type="number" name="amount" id="amountInput" step="0.01" required 
+                           oninput="calculateTax()"
+                           class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2.5"
+                           placeholder="10000.00">
+                    <div id="smartSuggestions" class="hidden mt-2"></div>
+                </div>
+                
+                <!-- Transaction Date -->
+                <div>
+                    <label class="block text-sm font-medium mb-2">Transaction Date *</label>
+                    <input type="date" name="transaction_date" value="{{ today }}" required
+                           class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2.5">
+                </div>
+                
+                <!-- Payment Mode (shown for Payment type) -->
+                <div id="paymentModeField" class="hidden">
+                    <label class="block text-sm font-medium mb-2">Payment Mode *</label>
+                    <select name="payment_mode" class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2.5">
+                        <option value="">Select Mode</option>
+                        <option value="Cash">💵 Cash</option>
+                        <option value="Card">💳 Debit/Credit Card</option>
+                        <option value="UPI">📱 UPI</option>
+                        <option value="Bank Transfer">🏦 Bank Transfer</option>
+                        <option value="Cheque">📄 Cheque</option>
+                    </select>
+                </div>
+                
+                <!-- Reference Number -->
+                <div id="referenceField" class="hidden">
+                    <label class="block text-sm font-medium mb-2">Reference/Cheque Number</label>
+                    <input type="text" name="reference_number" 
+                           class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2.5"
+                           placeholder="Enter reference number">
+                </div>
+                
+                <!-- Description with AI Assist -->
+                <div class="md:col-span-2">
+                    <label class="block text-sm font-medium mb-2 flex items-center justify-between">
+                        <span>Description</span>
+                        <button type="button" onclick="aiGenerateDescription()" 
+                                class="text-xs text-purple-400 hover:text-purple-300">
+                            🤖 AI Suggest
+                        </button>
+                    </label>
+                    <textarea name="description" id="descriptionField" rows="3" 
+                              class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2.5"
+                              placeholder="Add transaction details..."></textarea>
+                </div>
+                
+                <!-- Tax Preview (FIXED - Dynamic Tax Rate) -->
+                <div class="md:col-span-2 bg-gradient-to-r from-blue-900 to-purple-900 bg-opacity-50 border border-blue-600 rounded-lg p-4">
+                    <h4 class="font-bold mb-3 flex items-center">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
+                        </svg>
+                        💰 Amount Breakdown
+                    </h4>
+                    <div class="space-y-2 text-sm">
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-300">Base Amount:</span>
+                            <span id="baseAmount" class="font-medium text-blue-300">₹0.00</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-300">GST (<span id="taxRateDisplay">{{ tax_rate }}</span>%):</span>
+                            <span id="taxAmount" class="font-medium text-purple-300">₹0.00</span>
+                        </div>
+                        <div class="border-t border-gray-600 pt-2 flex justify-between items-center">
+                            <span class="font-bold text-lg">Total Amount:</span>
+                            <span id="totalAmount" class="font-bold text-2xl text-green-400">₹0.00</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Credit Limit Warning -->
+                <div id="creditWarning" class="hidden md:col-span-2 bg-red-900 bg-opacity-30 border border-red-600 rounded-lg p-4">
+                    <p class="text-red-300 font-medium">⚠️ Warning: This transaction will exceed customer's credit limit!</p>
+                </div>
+            </div>
+            
+            <div class="mt-6 flex flex-col sm:flex-row justify-end space-y-3 sm:space-y-0 sm:space-x-3">
+                <button type="button" 
+                        onclick="document.getElementById('addTransModal').classList.add('hidden')"
+                        class="w-full sm:w-auto px-6 py-2.5 bg-gray-700 hover:bg-gray-600 rounded-lg font-medium transition-colors">
+                    Cancel
+                </button>
+                <button type="submit" 
+                        class="w-full sm:w-auto px-6 py-2.5 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 rounded-lg font-medium transition-all shadow-lg">
+                    Record Transaction
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Get tax rate from backend (FIXED - not hardcoded)
+const TAX_RATE = {{ tax_rate }} / 100;
+
+function updateTransactionForm() {
+    const type = document.getElementById('transType').value;
+    const paymentField = document.getElementById('paymentModeField');
+    const refField = document.getElementById('referenceField');
+    
+    if (type === 'Payment') {
+        paymentField.classList.remove('hidden');
+        refField.classList.remove('hidden');
+    } else {
+        paymentField.classList.add('hidden');
+        refField.classList.add('hidden');
+    }
+    
+    calculateTax();
+}
+
+function calculateTax() {
+    const amount = parseFloat(document.getElementById('amountInput').value) || 0;
+    const type = document.getElementById('transType').value;
+    
+    let tax = 0;
+    if (type === 'Sale') {
+        tax = amount * TAX_RATE;
+    }
+    
+    const total = amount + tax;
+    
+    document.getElementById('baseAmount').textContent = '₹' + amount.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+    document.getElementById('taxAmount').textContent = '₹' + tax.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+    document.getElementById('totalAmount').textContent = '₹' + total.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+    
+    checkCreditLimit(total);
+}
+
+function checkCreditLimit(transactionAmount) {
+    const customerSelect = document.getElementById('customerSelect');
+    const selectedOption = customerSelect.options[customerSelect.selectedIndex];
+    
+    if (!selectedOption.value) return;
+    
+    const creditLimit = parseFloat(selectedOption.dataset.limit);
+    const outstanding = parseFloat(selectedOption.dataset.outstanding);
+    const newTotal = outstanding + transactionAmount;
+    
+    const warning = document.getElementById('creditWarning');
+    if (newTotal > creditLimit) {
+        warning.classList.remove('hidden');
+        warning.innerHTML = `⚠️ Warning: New balance ₹${newTotal.toLocaleString('en-IN', {minimumFractionDigits: 2})} will exceed limit of ₹${creditLimit.toLocaleString('en-IN', {minimumFractionDigits: 2})}`;
+    } else {
+        warning.classList.add('hidden');
+    }
+}
+
+function loadCustomerInsights() {
+    const customerId = document.getElementById('customerSelect').value;
+    if (!customerId) {
+        document.getElementById('customerInsight').classList.add('hidden');
+        return;
+    }
+    
+    document.getElementById('customerInsight').classList.remove('hidden');
+    document.getElementById('customerInsight').innerHTML = '🤖 Loading AI insights...';
+    
+    fetch(`/customer-quick-insight/${customerId}`)
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('customerInsight').innerHTML = data.insight;
+        });
+}
+
+function loadSmartSuggestions() {
+    const customerId = document.getElementById('customerSelect').value;
+    const type = document.getElementById('transType').value;
+    
+    if (!customerId || type !== 'Sale') {
+        document.getElementById('smartSuggestions').classList.add('hidden');
+        return;
+    }
+    
+    fetch(`/smart-transaction-suggestions/${customerId}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.suggestions && data.suggestions.length > 0) {
+                const suggestDiv = document.getElementById('smartSuggestions');
+                suggestDiv.classList.remove('hidden');
+                suggestDiv.innerHTML = '<p class="text-xs text-purple-300 mb-2">💡 Common amounts:</p>';
+                
+                data.suggestions.forEach(suggestion => {
+                    const btn = document.createElement('button');
+                    btn.type = 'button';
+                    btn.className = 'text-xs bg-purple-600 hover:bg-purple-700 px-3 py-1 rounded mr-2 mb-2';
+                    btn.textContent = `₹${suggestion.amount}`;
+                    btn.onclick = () => {
+                        document.getElementById('amountInput').value = suggestion.amount;
+                        document.getElementById('descriptionField').value = suggestion.description;
+                        calculateTax();
+                    };
+                    suggestDiv.appendChild(btn);
+                });
+            }
+        });
+}
+
+function aiGenerateDescription() {
+    const customerId = document.getElementById('customerSelect').value;
+    const type = document.getElementById('transType').value;
+    const amount = document.getElementById('amountInput').value;
+    
+    if (!customerId || !amount) {
+        alert('Please select customer and enter amount first');
+        return;
+    }
+    
+    document.getElementById('descriptionField').value = '🤖 AI is generating description...';
+    
+    fetch('/ai-generate-description', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+            customer_id: customerId,
+            type: type,
+            amount: amount
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        document.getElementById('descriptionField').value = data.description;
+    });
+}
+
+function performNLSearch() {
+    const query = document.getElementById('nlSearchInput').value;
+    if (!query) return;
+    
+    const resultsDiv = document.getElementById('nlSearchResults');
+    resultsDiv.classList.remove('hidden');
+    resultsDiv.innerHTML = '<p class="text-gray-400">🤖 AI is searching...</p>';
+    
+    fetch('/nl-search', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({query: query})
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.results) {
+            resultsDiv.innerHTML = `
+                <h3 class="font-bold mb-2">Search Results:</h3>
+                <div class="text-gray-300">${data.results}</div>
+            `;
+        } else if (data.error) {
+            resultsDiv.innerHTML = `<p class="text-red-400">${data.error}</p>`;
+        }
+    });
+}
+
+function validateTransaction() {
+    const type = document.getElementById('transType').value;
+    if (type === 'Payment') {
+        const mode = document.querySelector('select[name="payment_mode"]').value;
+        if (!mode) {
+            alert('Please select payment mode');
+            return false;
+        }
+    }
+    return true;
+}
+</script>
+{% endblock %}

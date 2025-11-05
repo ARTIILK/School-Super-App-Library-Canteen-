@@ -1,0 +1,105 @@
+<!-- bills.html -->
+{% extends "layout.html" %}
+
+{% block title %}Monthly Bills - Record Book System{% endblock %}
+
+{% block content %}
+<div class="mb-8 flex items-center justify-between">
+    <div>
+        <h1 class="text-3xl font-bold mb-2">Monthly Bills</h1>
+        <p class="text-gray-400">Generate and manage customer bills</p>
+    </div>
+    <button onclick="document.getElementById('generateModal').classList.remove('hidden')" 
+            class="bg-purple-600 hover:bg-purple-700 text-white font-semibold py-3 px-6 rounded-lg flex items-center">
+        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+        </svg>
+        Generate Bills
+    </button>
+</div>
+
+<div class="bg-gray-800 rounded-xl shadow-lg overflow-hidden">
+    <div class="overflow-x-auto">
+        <table>
+            <thead>
+                <tr>
+                    <th>Bill ID</th>
+                    <th>Customer</th>
+                    <th>Month</th>
+                    <th>Total Amount</th>
+                    <th>Paid</th>
+                    <th>Due Amount</th>
+                    <th>Due Date</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for bill in bills %}
+                <tr>
+                    <td class="font-medium">#{{ bill.bill_id }}</td>
+                    <td>{{ bill.customer_name }}</td>
+                    <td>{{ bill.bill_month }}</td>
+                    <td class="text-blue-400">₹{{ "%.2f"|format(bill.total_amount) }}</td>
+                    <td class="text-green-400">₹{{ "%.2f"|format(bill.paid_amount) }}</td>
+                    <td class="font-semibold text-yellow-400">₹{{ "%.2f"|format(bill.due_amount) }}</td>
+                    <td>{{ bill.due_date }}</td>
+                    <td>
+                        <span class="badge {% if bill.status == 'Paid' %}badge-success{% elif bill.due_date < today %}badge-danger{% else %}badge-warning{% endif %}">
+                            {{ bill.status }}
+                        </span>
+                    </td>
+                    <td>
+                        <button onclick="sendBillEmail('{{ bill.customer_name }}', '{{ bill.email }}')" 
+                                class="text-blue-400 hover:text-blue-300" title="Send Email">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                            </svg>
+                        </button>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="9" class="text-center text-gray-500 py-8">No bills generated yet</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Generate Bills Modal -->
+<div id="generateModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div class="bg-gray-800 rounded-xl shadow-2xl max-w-md w-full mx-4">
+        <div class="px-6 py-4 border-b border-gray-700">
+            <h2 class="text-2xl font-bold">Generate Monthly Bills</h2>
+        </div>
+        <form action="{{ url_for('generate_bills') }}" method="POST" class="p-6">
+            <div class="mb-6">
+                <label class="block text-sm font-medium mb-2">Select Month</label>
+                <input type="month" name="month" value="{{ current_month }}" required 
+                       class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2.5">
+            </div>
+            <div class="bg-blue-900 bg-opacity-30 border border-blue-600 text-blue-300 rounded-lg p-4 mb-6">
+                <p class="text-sm">This will generate bills for all active customers and send them via email automatically.</p>
+            </div>
+            <div class="flex justify-end space-x-3">
+                <button type="button" onclick="document.getElementById('generateModal').classList.add('hidden')" 
+                        class="px-6 py-2.5 bg-gray-700 hover:bg-gray-600 rounded-lg">Cancel</button>
+                <button type="submit" class="px-6 py-2.5 bg-purple-600 hover:bg-purple-700 rounded-lg">Generate & Send</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function sendBillEmail(name, email) {
+    if(confirm(`Send bill reminder to ${name} (${email})?`)) {
+        alert('Email sent successfully!');
+    }
+}
+</script>
+{% endblock %}
+

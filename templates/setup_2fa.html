@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Setup 2FA - School Super App</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class'
+        }
+    </script>
+</head>
+<body class="bg-gray-900 text-white font-sans">
+    
+    <div class="flex items-center justify-center min-h-screen p-4">
+        <div class="w-full max-w-2xl">
+            <!-- Setup Card -->
+            <div class="bg-gray-800 rounded-lg shadow-2xl p-8">
+                <!-- Header -->
+                <div class="text-center mb-8">
+                    <h1 class="text-3xl font-bold mb-2">Two-Factor Authentication Setup</h1>
+                    <p class="text-gray-400">Configure your authenticator app</p>
+                </div>
+                
+                <!-- Instructions -->
+                <div class="bg-blue-600 bg-opacity-20 border border-blue-600 text-blue-300 px-4 py-3 rounded mb-6">
+                    <p class="font-semibold mb-2">⚠️ Important: Complete this setup only once</p>
+                    <p class="text-sm">Save your secret key in a secure location. You'll need it if you lose access to your authenticator app.</p>
+                </div>
+                
+                <!-- Step 1: QR Code -->
+                <div class="mb-8">
+                    <h2 class="text-xl font-semibold mb-4 flex items-center">
+                        <span class="bg-blue-600 text-white rounded-full w-8 h-8 flex items-center justify-center mr-3">1</span>
+                        Scan QR Code
+                    </h2>
+                    <div class="bg-white p-6 rounded-lg flex justify-center">
+                        <img src="data:image/png;base64,{{ qr_code }}" alt="TOTP QR Code" class="max-w-full h-auto">
+                    </div>
+                    <p class="text-sm text-gray-400 mt-3 text-center">
+                        Open Google Authenticator (or any TOTP app) and scan this QR code
+                    </p>
+                </div>
+                
+                <!-- Step 2: Manual Entry -->
+                <div class="mb-8">
+                    <h2 class="text-xl font-semibold mb-4 flex items-center">
+                        <span class="bg-blue-600 text-white rounded-full w-8 h-8 flex items-center justify-center mr-3">2</span>
+                        Or Enter Manually
+                    </h2>
+                    <div class="bg-gray-700 p-4 rounded-lg">
+                        <p class="text-sm text-gray-400 mb-2">If you can't scan the QR code, enter this secret key manually:</p>
+                        <div class="flex items-center justify-between bg-gray-900 p-3 rounded">
+                            <code class="text-lg font-mono text-green-400">{{ totp_secret }}</code>
+                            <button 
+                                onclick="copyToClipboard('{{ totp_secret }}')" 
+                                class="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded text-sm transition duration-200">
+                                Copy
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Step 3: Test Login -->
+                <div class="mb-8">
+                    <h2 class="text-xl font-semibold mb-4 flex items-center">
+                        <span class="bg-blue-600 text-white rounded-full w-8 h-8 flex items-center justify-center mr-3">3</span>
+                        Test Your Setup
+                    </h2>
+                    <p class="text-gray-400 mb-4">After adding the account to your authenticator app, test it by logging in:</p>
+                    <a 
+                        href="{{ url_for('login') }}" 
+                        class="block w-full text-center bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-lg transition duration-200">
+                        Go to Login Page
+                    </a>
+                </div>
+                
+                <!-- Security Warning -->
+                <div class="bg-yellow-600 bg-opacity-20 border border-yellow-600 text-yellow-300 px-4 py-3 rounded">
+                    <p class="text-sm font-semibold mb-1">🔒 Security Reminder</p>
+                    <ul class="text-sm list-disc list-inside space-y-1">
+                        <li>Keep your secret key secure and backed up</li>
+                        <li>Don't share your secret key with anyone</li>
+                        <li>Consider removing access to this setup page after configuration</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(function() {
+                alert('Secret key copied to clipboard!');
+            }, function(err) {
+                alert('Failed to copy: ' + err);
+            });
+        }
+    </script>
+    
+</body>
+</html>

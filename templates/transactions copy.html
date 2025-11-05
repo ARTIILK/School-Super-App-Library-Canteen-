@@ -1,0 +1,116 @@
+<!-- transactions.html -->
+{% extends "layout.html" %}
+
+{% block title %}Transactions - Record Book System{% endblock %}
+
+{% block content %}
+<div class="mb-8 flex items-center justify-between">
+    <div>
+        <h1 class="text-3xl font-bold mb-2">Transactions</h1>
+        <p class="text-gray-400">Record all business transactions</p>
+    </div>
+    <button onclick="document.getElementById('addTransModal').classList.remove('hidden')" 
+            class="bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-6 rounded-lg flex items-center">
+        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+        </svg>
+        New Transaction
+    </button>
+</div>
+
+<div class="bg-gray-800 rounded-xl shadow-lg overflow-hidden">
+    <div class="overflow-x-auto">
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Date</th>
+                    <th>Customer</th>
+                    <th>Type</th>
+                    <th>Amount</th>
+                    <th>Description</th>
+                    <th>Due Date</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for trans in transactions %}
+                <tr>
+                    <td class="text-gray-400">#{{ trans.transaction_id }}</td>
+                    <td>{{ trans.transaction_date }}</td>
+                    <td class="font-medium">{{ trans.customer_name }}</td>
+                    <td><span class="badge badge-info">{{ trans.transaction_type }}</span></td>
+                    <td class="font-semibold {% if trans.transaction_type == 'Payment' %}text-green-400{% else %}text-yellow-400{% endif %}">
+                        ₹{{ "%.2f"|format(trans.amount) }}
+                    </td>
+                    <td class="text-gray-300 text-sm">{{ trans.description or '-' }}</td>
+                    <td>{{ trans.due_date or '-' }}</td>
+                    <td><span class="badge {% if trans.status == 'Paid' %}badge-success{% else %}badge-warning{% endif %}">{{ trans.status }}</span></td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="8" class="text-center text-gray-500 py-8">No transactions recorded yet</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Add Transaction Modal -->
+<div id="addTransModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+    <div class="bg-gray-800 rounded-xl shadow-2xl max-w-2xl w-full">
+        <div class="px-6 py-4 border-b border-gray-700 flex items-center justify-between">
+            <h2 class="text-2xl font-bold">New Transaction</h2>
+            <button onclick="document.getElementById('addTransModal').classList.add('hidden')" class="text-gray-400 hover:text-white">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
+        </div>
+        
+        <form action="{{ url_for('transactions') }}" method="POST" class="p-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="md:col-span-2">
+                    <label class="block text-sm font-medium mb-2">Customer *</label>
+                    <select name="customer_id" required class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2.5">
+                        <option value="">Select Customer</option>
+                        {% for customer in customers %}
+                        <option value="{{ customer.customer_id }}">{{ customer.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium mb-2">Transaction Type *</label>
+                    <select name="transaction_type" required class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2.5">
+                        <option value="Sale">Sale/Credit</option>
+                        <option value="Payment">Payment Received</option>
+                        <option value="Refund">Refund</option>
+                    </select>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium mb-2">Amount (₹) *</label>
+                    <input type="number" name="amount" step="0.01" required class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2.5">
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium mb-2">Transaction Date</label>
+                    <input type="date" name="transaction_date" value="{{ today }}" class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2.5">
+                </div>
+                
+                <div class="md:col-span-2">
+                    <label class="block text-sm font-medium mb-2">Description</label>
+                    <textarea name="description" rows="3" class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2.5"></textarea>
+                </div>
+            </div>
+            
+            <div class="mt-6 flex justify-end space-x-3">
+                <button type="button" onclick="document.getElementById('addTransModal').classList.add('hidden')" class="px-6 py-2.5 bg-gray-700 hover:bg-gray-600 rounded-lg">Cancel</button>
+                <button type="submit" class="px-6 py-2.5 bg-green-600 hover:bg-green-700 rounded-lg">Record Transaction</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
